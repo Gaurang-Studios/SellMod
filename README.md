@@ -16,8 +16,6 @@ SellMod simulates real player inventory interactions:
 - Places them into container slots that accept them
 - Closes the GUI to trigger sell-on-close behavior
 
-No QUICK_MOVE, no slot index assumptions.
-
 ## Important notes
 - The mod dumps your entire inventory
 - Keep important items out before enabling
@@ -26,13 +24,13 @@ No QUICK_MOVE, no slot index assumptions.
 ## Requirements
 - Fabric Loader 0.18+
 - Fabric API
-- Mod Menu
-- Cloth Config
+- Mod Menu (latest)
+- Cloth Config (latest)
 
 ## Installation
 1. Install Fabric Loader
 2. Drop the mod JAR into your `mods` folder
-3. Configure via Mod Menu
+3. Configure Mod Settings via Mod Menu
 
 ## License
 MIT
