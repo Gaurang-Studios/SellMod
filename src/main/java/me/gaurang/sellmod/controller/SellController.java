@@ -197,7 +197,12 @@ public class SellController {
 
     private int rollCooldown() {
         int base = config.baseDelaySeconds * 20;
-        return base + random.nextInt(41) - 20; // ±2s
+    
+        if (!config.randomizeDelay) {
+            return base;
+        }
+    
+        return base + random.nextInt(41) - 20; // ±2 seconds
     }
 
     private void showToast(String title, String msg) {

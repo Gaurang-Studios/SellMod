@@ -1,0 +1,19 @@
+# Gradle
+.gradle/
+build/
+
+# Gradle wrapper cache (optional but recommended)
+**/build/
+**/.gradle/
+
+# IDE files (safe to ignore)
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db

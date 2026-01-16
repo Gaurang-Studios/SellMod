@@ -54,6 +54,15 @@ public class ModConfigScreen {
                 .setSaveConsumer(val -> config.baseDelaySeconds = val)
                 .build()
         );
+        
+        general.addEntry(
+            entry.startTextDescription(
+                Text.literal(
+                    "Adds a small random offset to the delay between sell cycles\n" +
+                    "to avoid repetitive timing patterns"
+                )
+            ).build()
+        );
 
         general.addEntry(
             entry.startBooleanToggle(

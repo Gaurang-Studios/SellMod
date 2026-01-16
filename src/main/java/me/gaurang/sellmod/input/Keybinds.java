@@ -1,51 +1,48 @@
 package me.gaurang.sellmod.input;
 
-import me.gaurang.sellmod.SellModClient;
-import me.gaurang.sellmod.config.ModConfig;
+import me.gaurang.sellmod.config.ModConfigScreen;
+import me.gaurang.sellmod.controller.SellController;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
-public final class Keybinds {
+public class Keybinds {
 
-    public static KeyBinding KILL_SWITCH;
-    public static KeyBinding TOGGLE_AUTOMATION;
+    private static final MinecraftClient CLIENT = MinecraftClient.getInstance();
 
-    public static void register() {
-        KILL_SWITCH = KeyBindingHelper.registerKeyBinding(
-                new KeyBinding(
-                        "key.sellmod.kill_switch",
-                        GLFW.GLFW_KEY_UNKNOWN, // unbound
-                        "category.sellmod"
-                )
-        );
+    public static final KeyBinding TOGGLE = KeyBindingHelper.registerKeyBinding(
+        new KeyBinding(
+            "key.sellmod.toggle",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_UNKNOWN,
+            "category.sellmod"
+        )
+    );
 
-        TOGGLE_AUTOMATION = KeyBindingHelper.registerKeyBinding(
-                new KeyBinding(
-                        "key.sellmod.toggle",
-                        GLFW.GLFW_KEY_UNKNOWN, // unbound
-                        "category.sellmod"
-                )
-        );
-    }
+    public static final KeyBinding OPEN_CONFIG = KeyBindingHelper.registerKeyBinding(
+        new KeyBinding(
+            "key.sellmod.config",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_UNKNOWN,
+            "category.sellmod"
+        )
+    );
 
-    public static void handle() {
-        // Kill switch
-        while (KILL_SWITCH.wasPressed()) {
-            SellModClient.SELL_CONTROLLER.disable();
-            ModConfig.INSTANCE.enabled = false;
-        }
-
-        while (TOGGLE_AUTOMATION.wasPressed()) {
-            if (SellModClient.SELL_CONTROLLER.isEnabled()) {
-                SellModClient.SELL_CONTROLLER.disable();
-                ModConfig.INSTANCE.enabled = false;
+    public static void handle(SellController controller) {
+        while (TOGGLE.wasPressed()) {
+            if (controller.isEnabled()) {
+                controller.disable();
             } else {
-                SellModClient.SELL_CONTROLLER.enable();
-                ModConfig.INSTANCE.enabled = true;
+                controller.enable();
             }
         }
-    }
 
-    private Keybinds() {}
+        while (OPEN_CONFIG.wasPressed()) {
+            CLIENT.setScreen(
+                ModConfigScreen.create(CLIENT.currentScreen)
+            );
+        }
+    }
 }

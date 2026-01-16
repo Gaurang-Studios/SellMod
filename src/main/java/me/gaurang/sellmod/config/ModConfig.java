@@ -12,6 +12,9 @@ public class ModConfig {
 
     // Base delay between sell cycles (seconds)
     public int baseDelaySeconds = 5;
+    
+    // Delay randomization toggle (±2s)
+    public boolean randomizeDelay = true;
 
     // Optional GUI title verification
     public boolean requireTitleMatch = false;

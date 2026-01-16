@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'me.gaurang'
-version = '1.0.0'
+version = '1.0.1'
 
 base {
     archivesName = 'sellmod'
@@ -54,9 +54,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 jar {
-    from("LICENSE") {
-        rename { "${it}_${archivesBaseName}" }
-    }
+    from("LICENSE")
 }
 
 publishing {

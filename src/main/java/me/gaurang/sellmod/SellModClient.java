@@ -13,8 +13,6 @@ public class SellModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
 
-        Keybinds.register();
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
 
             // Sync controller with config
@@ -25,7 +23,7 @@ public class SellModClient implements ClientModInitializer {
             }
 
             SELL_CONTROLLER.onClientTick(client);
-            Keybinds.handle();
+            Keybinds.handle(SELL_CONTROLLER);
         });
     }
 }

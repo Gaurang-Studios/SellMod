@@ -2,5 +2,5 @@
   "category.sellmod": "SellMod",
 
   "key.sellmod.toggle": "Toggle SellMod",
-  "key.sellmod.kill_switch": "Kill Switch (Force Stop SellMod)"
+  "key.sellmod.config": "Open SellMod Config"
 }
