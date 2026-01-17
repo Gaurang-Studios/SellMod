@@ -1,5 +1,6 @@
 package me.gaurang.sellmod.input;
 
+import me.gaurang.sellmod.config.ModConfig;
 import me.gaurang.sellmod.config.ModConfigScreen;
 import me.gaurang.sellmod.controller.SellController;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -12,31 +13,38 @@ public class Keybinds {
 
     private static final MinecraftClient CLIENT = MinecraftClient.getInstance();
 
-    public static final KeyBinding TOGGLE = KeyBindingHelper.registerKeyBinding(
-        new KeyBinding(
-            "key.sellmod.toggle",
-            InputUtil.Type.KEYSYM,
-            GLFW.GLFW_KEY_UNKNOWN,
-            "category.sellmod"
-        )
-    );
+    public static KeyBinding TOGGLE;
+    public static KeyBinding OPEN_CONFIG;
 
-    public static final KeyBinding OPEN_CONFIG = KeyBindingHelper.registerKeyBinding(
-        new KeyBinding(
-            "key.sellmod.config",
-            InputUtil.Type.KEYSYM,
-            GLFW.GLFW_KEY_UNKNOWN,
-            "category.sellmod"
-        )
-    );
+    private Keybinds() {}
+
+    public static void register() {
+        if (TOGGLE != null) return;
+
+        TOGGLE = KeyBindingHelper.registerKeyBinding(
+            new KeyBinding(
+                "key.sellmod.toggle",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_UNKNOWN,
+                "category.sellmod"
+            )
+        );
+
+        OPEN_CONFIG = KeyBindingHelper.registerKeyBinding(
+            new KeyBinding(
+                "key.sellmod.config",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_UNKNOWN,
+                "category.sellmod"
+            )
+        );
+    }
 
     public static void handle(SellController controller) {
+        if (TOGGLE == null) return;
+
         while (TOGGLE.wasPressed()) {
-            if (controller.isEnabled()) {
-                controller.disable();
-            } else {
-                controller.enable();
-            }
+            ModConfig.INSTANCE.enabled = !ModConfig.INSTANCE.enabled;
         }
 
         while (OPEN_CONFIG.wasPressed()) {

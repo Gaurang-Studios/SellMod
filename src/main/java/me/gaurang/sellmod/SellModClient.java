@@ -12,6 +12,7 @@ public class SellModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        Keybinds.register();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
 
