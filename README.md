@@ -8,7 +8,6 @@ by interacting with server-provided sell GUIs.
 - Transfers items using cursor-based interactions
 - Compatible with plugin-controlled shop GUIs
 - Randomized delay between sell cycles
-- Mod Menu + Cloth Config support
 
 ## How it works
 SellMod simulates real player inventory interactions:
@@ -22,7 +21,7 @@ SellMod simulates real player inventory interactions:
 - Behavior depends on server GUI design
 
 ## Requirements
-- Fabric Loader 0.18+
+- Fabric Loader 0.18.X+
 - Fabric API
 - Mod Menu (latest)
 - Cloth Config (latest)
