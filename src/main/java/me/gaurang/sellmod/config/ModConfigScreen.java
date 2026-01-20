@@ -63,6 +63,49 @@ public class ModConfigScreen {
                 )
             ).build()
         );
+        
+        general.addEntry(
+            entry.startIntSlider(
+                    Text.literal("Item transfer speed (in TICKS)"),
+                    config.itemMoveDelayTicks,
+                    1,
+                    20
+            )
+            .setTooltip(
+                Text.literal(
+                    "Controls the delay between moving items into the sell GUI.\n" +
+                    "Lower = Faster but riskier.\n" +
+                    "Higher = Slower but safer."
+                )
+            )
+            .setDefaultValue(4)
+            .setTextGetter(val -> {
+                int ms = val * 50;
+        
+                String safety;
+                if (val <= 2) safety = "Very Fast (Risky)";
+                else if (val <= 4) safety = "Fast";
+                else if (val <= 7) safety = "Normal";
+                else if (val <= 12) safety = "Safe";
+                else safety = "Very Safe";
+        
+                return Text.literal(
+                        val + " ticks  (~" + ms + " ms)  •  " + safety
+                );
+            })
+            .setSaveConsumer(val -> config.itemMoveDelayTicks = val)
+            .build()
+        );
+        
+        general.addEntry(
+            entry.startBooleanToggle(
+                    Text.literal("Randomize item transfer delay"),
+                    config.randomizeItemDelay
+            )
+            .setDefaultValue(true)
+            .setSaveConsumer(val -> config.randomizeItemDelay = val)
+            .build()
+        );
 
         general.addEntry(
             entry.startBooleanToggle(

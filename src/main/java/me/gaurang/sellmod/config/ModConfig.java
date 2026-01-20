@@ -13,6 +13,12 @@ public class ModConfig {
     // Base delay between sell cycles (seconds)
     public int baseDelaySeconds = 5;
     
+    // Delay between individual item moves (ticks)
+    public int itemMoveDelayTicks = 4;
+    
+    // Randomize per-item delay (±2 ticks)
+    public boolean randomizeItemDelay = true;
+    
     // Delay randomization toggle (±2s)
     public boolean randomizeDelay = true;
 

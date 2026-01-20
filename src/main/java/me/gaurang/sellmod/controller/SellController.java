@@ -154,7 +154,7 @@ public class SellController {
 
                 if (handler.getCursorStack().isEmpty()) {
                     movedThisCycle = true;
-                    actionDelayTicks = 4;
+                    actionDelayTicks = rollItemDelay();
                     return;
                 }
             }
@@ -195,6 +195,16 @@ public class SellController {
        Utils
        ========================= */
 
+    private int rollItemDelay() {
+        int base = config.itemMoveDelayTicks;
+    
+        if (!config.randomizeItemDelay) {
+            return base;
+        }
+    
+        return Math.max(1, base + random.nextInt(5) - 2); // ±2 ticks
+    }
+    
     private int rollCooldown() {
         int base = config.baseDelaySeconds * 20;
     
