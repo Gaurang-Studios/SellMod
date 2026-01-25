@@ -2,11 +2,11 @@
 .gradle/
 build/
 
-# Gradle wrapper cache (optional but recommended)
+# Gradle wrapper cache
 **/build/
 **/.gradle/
 
-# IDE files (safe to ignore)
+# IDE files
 .idea/
 .vscode/
 *.iml

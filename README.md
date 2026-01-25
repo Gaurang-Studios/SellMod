@@ -1,6 +1,6 @@
 # SellMod
 
-A Fabric client-side mod for Minecraft 1.21.8 that automates selling items
+A Fabric client-side mod for Minecraft 1.21.1 & 1.21.8 (more versions soon) that automates selling items
 by interacting with server-provided sell GUIs.
 
 ## Features
