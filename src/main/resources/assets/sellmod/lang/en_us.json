@@ -1,6 +1,5 @@
 {
-  "category.sellmod": "SellMod",
-
   "key.sellmod.toggle": "Toggle SellMod",
-  "key.sellmod.config": "Open SellMod Config"
+  "key.sellmod.config": "Open SellMod Config",
+  "key.category.sellmod.main": "SellMod"
 }

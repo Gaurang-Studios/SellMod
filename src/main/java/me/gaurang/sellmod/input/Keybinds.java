@@ -7,11 +7,15 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class Keybinds {
 
     private static final MinecraftClient CLIENT = MinecraftClient.getInstance();
+
+    private static final KeyBinding.Category SELLMOD_CATEGORY =
+        KeyBinding.Category.create(Identifier.of("sellmod", "main"));
 
     public static KeyBinding TOGGLE;
     public static KeyBinding OPEN_CONFIG;
@@ -26,7 +30,7 @@ public class Keybinds {
                 "key.sellmod.toggle",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_UNKNOWN,
-                "category.sellmod"
+                SELLMOD_CATEGORY
             )
         );
 
@@ -35,7 +39,7 @@ public class Keybinds {
                 "key.sellmod.config",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_UNKNOWN,
-                "category.sellmod"
+                SELLMOD_CATEGORY
             )
         );
     }

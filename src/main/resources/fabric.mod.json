@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "sellmod",
-  "version": "1.0.2.1",
+  "version": "1.0.2.2",
   "name": "SellMod",
   "license": "MIT",
   "icon": "icon.png",
@@ -32,8 +32,8 @@
   "depends": {
     "fabricloader": ">=0.17.2",
     "fabric-api": "*",
-    "minecraft": "1.21.1",
-    "cloth-config": ">=15.0.140",
-    "modmenu": ">=11.0.3"
+    "minecraft": "1.21.10",
+    "cloth-config": ">=20.0.149",
+    "modmenu": ">=16.0.0"
   }
 }
