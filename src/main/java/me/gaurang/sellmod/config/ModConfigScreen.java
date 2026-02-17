@@ -46,6 +46,21 @@ public class ModConfigScreen {
                 .setSaveConsumer(val -> config.sellCommand = val)
                 .build()
         );
+        
+        general.addEntry(
+            entry.startEnumSelector(
+                    Text.literal("Transfer Mode"),
+                    ModConfig.TransferMode.class,
+                    config.transferMode
+                )
+                .setTooltip(Text.literal("""
+                PICKUP: Uses cursor pickup logic.
+                SHIFT: Uses shift-click only (best compatibility).
+                """))
+                .setDefaultValue(ModConfig.TransferMode.SHIFT)
+                .setSaveConsumer(val -> config.transferMode = val)
+                .build()
+        );
 
         general.addEntry(
             entry.startIntField(Text.literal("Base Delay (seconds)"), config.baseDelaySeconds)
@@ -94,6 +109,27 @@ public class ModConfigScreen {
                 );
             })
             .setSaveConsumer(val -> config.itemMoveDelayTicks = val)
+            .build()
+        );
+        
+        general.addEntry(
+            entry.startIntSlider(
+                    Text.literal("Transfer Burst (stacks per tick)"),
+                    config.transferBurst,
+                    1,
+                    6
+            )
+            .setDefaultValue(3)
+            .setTooltip(
+                Text.literal(
+                    "How many item stacks are moved per client tick.\n" +
+                    "Higher = faster, but may trigger server limits.\n\n" +
+                    "1  = Very Safe\n" +
+                    "3  = Balanced (recommended)\n" +
+                    "5+ = Fast (use carefully)"
+                )
+            )
+            .setSaveConsumer(val -> config.transferBurst = val)
             .build()
         );
         

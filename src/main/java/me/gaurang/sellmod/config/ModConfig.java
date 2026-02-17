@@ -9,12 +9,18 @@ public class ModConfig {
 
     // Command used to open the sell GUI
     public String sellCommand = "/sellgui";
+    
+    // Default transfer Mode to use
+    public TransferMode transferMode = TransferMode.SHIFT;
 
     // Base delay between sell cycles (seconds)
     public int baseDelaySeconds = 5;
     
     // Delay between individual item moves (ticks)
     public int itemMoveDelayTicks = 4;
+    
+    // How many stacks to move per tick
+    public int transferBurst = 3;
     
     // Randomize per-item delay (±2 ticks)
     public boolean randomizeItemDelay = true;
@@ -27,5 +33,10 @@ public class ModConfig {
     public String expectedTitle = "";
 
     private ModConfig() {
+    }
+    
+    public enum TransferMode {
+        PICKUP,
+        SHIFT
     }
 }

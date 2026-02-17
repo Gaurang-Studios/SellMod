@@ -7,7 +7,6 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -29,7 +28,14 @@ public class SellController {
     private ScreenHandler handler;
 
     private boolean movedThisCycle = false;
-    private boolean guiWasOpened = false; // critical fix
+    private boolean guiWasOpened = false;
+
+    /* =========================
+       Stall Detection
+       ========================= */
+
+    private int stallTicks = 0;
+    private static final int STALL_THRESHOLD = 40;
 
     /* =========================
        Public API
@@ -52,14 +58,11 @@ public class SellController {
         return state != SellState.IDLE;
     }
 
-    /* =========================
-       Tick entry
-       ========================= */
+    /* ========================= */
 
     public void onClientTick(MinecraftClient client) {
         if (!config.enabled || client.player == null) return;
 
-        // Manual close detection ONLY after GUI was opened
         if (guiWasOpened
                 && state != SellState.IDLE
                 && !(client.currentScreen instanceof HandledScreen<?>)) {
@@ -68,7 +71,6 @@ public class SellController {
             guiWasOpened = false;
             state = SellState.COOLDOWN;
             cooldownTicks = 40;
-
             showToast("SellMod paused", "GUI closed manually");
             return;
         }
@@ -82,19 +84,14 @@ public class SellController {
         }
     }
 
-    /* =========================
-       States
-       ========================= */
+    /* ========================= */
 
     private void sendCommand(MinecraftClient client) {
         String cmd = config.sellCommand;
-        if (cmd.startsWith("/")) {
-            cmd = cmd.substring(1);
-        }
+        if (cmd.startsWith("/")) cmd = cmd.substring(1);
 
         client.player.networkHandler.sendChatCommand(cmd);
-
-        waitTicks = 40; // ~2 seconds
+        waitTicks = 40;
         state = SellState.WAIT_FOR_GUI;
     }
 
@@ -103,7 +100,7 @@ public class SellController {
             handler = screen.getScreenHandler();
             movedThisCycle = false;
             guiWasOpened = true;
-            actionDelayTicks = 5;
+            stallTicks = 0;
 
             showToast("Sell GUI opened", "Dumping inventory…");
             state = SellState.MOVE_ITEMS;
@@ -115,6 +112,10 @@ public class SellController {
         }
     }
 
+    /* =========================
+       FIXED BURST LOGIC
+       ========================= */
+
     private void dumpInventory(MinecraftClient client) {
         if (actionDelayTicks-- > 0) return;
         if (!(client.currentScreen instanceof HandledScreen<?>)) return;
@@ -123,64 +124,135 @@ public class SellController {
         ClientPlayerInteractionManager im = client.interactionManager;
         if (im == null) return;
 
-        // Cursor must be empty before starting
-        if (!handler.getCursorStack().isEmpty()) {
-            for (Slot slot : handler.slots) {
-                if (slot.inventory instanceof PlayerInventory
-                        && slot.canInsert(handler.getCursorStack())) {
+        int burst = Math.max(1, config.transferBurst);
+        boolean useShift = config.transferMode == ModConfig.TransferMode.SHIFT;
+
+        boolean movedThisTick = false;
+
+        while (burst-- > 0) {
+
+            /* ================= SHIFT ================= */
+
+            if (useShift) {
+                boolean moved = false;
+
+                for (Slot slot : handler.slots) {
+                    if (!(slot.inventory instanceof PlayerInventory)) continue;
+                    if (!slot.hasStack()) continue;
+
                     im.clickSlot(handler.syncId, slot.id, 0,
-                            SlotActionType.PICKUP, client.player);
-                    return;
+                            SlotActionType.QUICK_MOVE, client.player);
+
+                    moved = true;
+                    movedThisTick = true;
+                    movedThisCycle = true;
+                    break;
                 }
+
+                if (!moved) break;
+
+                continue; // <-- IMPORTANT (keeps burst alive)
             }
-            return;
-        }
 
-        // Pick from player inventory
-        for (Slot from : handler.slots) {
-            if (!(from.inventory instanceof PlayerInventory)) continue;
-            if (from.getStack().isEmpty()) continue;
+            /* ================= PICKUP ================= */
 
-            im.clickSlot(handler.syncId, from.id, 0,
-                    SlotActionType.PICKUP, client.player);
+            if (!handler.getCursorStack().isEmpty()) {
+                actionDelayTicks = 2;
+                return;
+            }
 
-            // Try placing into container
-            for (Slot to : handler.slots) {
-                if (to.inventory instanceof PlayerInventory) continue;
-                if (!to.canInsert(handler.getCursorStack())) continue;
+            boolean moved = false;
 
-                im.clickSlot(handler.syncId, to.id, 0,
+            for (Slot from : handler.slots) {
+                if (!(from.inventory instanceof PlayerInventory)) continue;
+                if (!from.hasStack()) continue;
+
+                im.clickSlot(handler.syncId, from.id, 0,
                         SlotActionType.PICKUP, client.player);
 
-                if (handler.getCursorStack().isEmpty()) {
+                for (Slot to : handler.slots) {
+                    if (to.inventory instanceof PlayerInventory) continue;
+                    if (!to.canInsert(handler.getCursorStack())) continue;
+
+                    im.clickSlot(handler.syncId, to.id, 0,
+                            SlotActionType.PICKUP, client.player);
+
+                    moved = true;
+                    movedThisTick = true;
                     movedThisCycle = true;
-                    actionDelayTicks = rollItemDelay();
-                    return;
+                    break;
                 }
+
+                if (!moved && !handler.getCursorStack().isEmpty()) {
+                    im.clickSlot(handler.syncId, from.id, 0,
+                            SlotActionType.PICKUP, client.player);
+                }
+
+                break;
             }
 
-            // Could not place → put back
-            im.clickSlot(handler.syncId, from.id, 0,
-                    SlotActionType.PICKUP, client.player);
+            if (!moved) break;
 
-            // Container full
+            continue; // <-- IMPORTANT
+        }
+
+        /* ================= GUI FULL DETECTION ================= */
+
+        boolean playerHasItems = false;
+
+        for (Slot slot : handler.slots) {
+            if (slot.inventory instanceof PlayerInventory && slot.hasStack()) {
+                playerHasItems = true;
+                break;
+            }
+        }
+
+        if (!guiHasEmptySlot() && playerHasItems) {
             state = SellState.CLOSE_GUI;
             return;
         }
 
-        // Nothing left to move
-        state = SellState.CLOSE_GUI;
+        if (movedThisTick) {
+            stallTicks = 0;
+        } else if (playerHasItems) {
+            stallTicks++;
+            if (stallTicks >= STALL_THRESHOLD) {
+                stallTicks = 0;
+                state = SellState.CLOSE_GUI;
+                return;
+            }
+        } else {
+            state = SellState.CLOSE_GUI;
+            return;
+        }
+
+        actionDelayTicks = config.itemMoveDelayTicks;
+    }
+
+    private boolean guiHasEmptySlot() {
+        if (handler == null) return false;
+
+        for (Slot slot : handler.slots) {
+            if (!(slot.inventory instanceof PlayerInventory) && !slot.hasStack()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void closeGui(MinecraftClient client) {
+        
+        client.player.closeHandledScreen();
+    
         if (movedThisCycle) {
-            client.player.closeHandledScreen();
             showToast("Items sold", "Waiting for next cycle");
         }
-
+    
         handler = null;
         guiWasOpened = false;
-
+        movedThisCycle = false;
+    
         cooldownTicks = rollCooldown();
         state = SellState.COOLDOWN;
     }
@@ -191,28 +263,10 @@ public class SellController {
         }
     }
 
-    /* =========================
-       Utils
-       ========================= */
-
-    private int rollItemDelay() {
-        int base = config.itemMoveDelayTicks;
-    
-        if (!config.randomizeItemDelay) {
-            return base;
-        }
-    
-        return Math.max(1, base + random.nextInt(5) - 2); // ±2 ticks
-    }
-    
     private int rollCooldown() {
         int base = config.baseDelaySeconds * 20;
-    
-        if (!config.randomizeDelay) {
-            return base;
-        }
-    
-        return base + random.nextInt(41) - 20; // ±2 seconds
+        if (!config.randomizeDelay) return base;
+        return base + random.nextInt(41) - 20;
     }
 
     private void showToast(String title, String msg) {

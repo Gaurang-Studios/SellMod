@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'me.gaurang'
-version = '1.0.2.2'
+version = '1.0.3.1'
 
 base {
     archivesName = 'sellmod'
