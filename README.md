@@ -1,7 +1,7 @@
 # SellMod
 
 [![Status](https://img.shields.io/badge/STATUS-RELEASE-2ecc71?style=for-the-badge)](https://github.com/Gaurang-Studios/SellMod/tags)
-[![GitHub release](https://img.shields.io/github/v/release/Gaurang-Studios/SellMod?include_prereleases&style=for-the-badge)](https://github.com/Gaurang-Studios/SellMod/releases/latest)
+[![Release](https://img.shields.io/modrinth/v/sellmod?label=RELEASE&style=for-the-badge&color=3a0ca3)](https://modrinth.com/mod/sellmod)
 [![GitHub issues](https://img.shields.io/github/issues/Gaurang-Studios/SellMod?style=for-the-badge)](https://github.com/Gaurang-Studios/SellMod/issues)
 [![Modrinth downloads](https://img.shields.io/modrinth/dt/sellmod?style=for-the-badge&logo=modrinth&color=1bd96a)](https://modrinth.com/mod/sellmod)
 
