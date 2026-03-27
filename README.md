@@ -42,9 +42,7 @@ SellMod simulates real player behavior:
 3. Moves items using valid slot interactions  
 4. Closes the GUI to trigger sell-on-close mechanics  
 
-No packet spoofing.  
-No inventory injection.  
-Only legitimate screen interactions.
+No packet spoofing or inventory injection.
 
 ---
 
@@ -63,8 +61,8 @@ Only legitimate screen interactions.
 1. Install Fabric Loader
 2. Install required dependencies
 3. Place SellMod + dependencies in your `mods` folder
-4. Open Mod Menu → Configure SellMod
-5. Bind a key and start selling
+4. Open Mod Menu → Configure SellMod as per your liking
+5. Bind a key in controls and start selling
 
 ---
 
