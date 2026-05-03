@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public class SellModClient implements ClientModInitializer {
 
+    public static final String MOD_VERSION = "1.0.4";
     public static final SellController SELL_CONTROLLER = new SellController();
 
     @Override

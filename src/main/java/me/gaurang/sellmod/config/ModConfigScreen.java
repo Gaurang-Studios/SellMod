@@ -3,8 +3,8 @@ package me.gaurang.sellmod.config;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 public class ModConfigScreen {
 
@@ -13,16 +13,16 @@ public class ModConfigScreen {
 
         ConfigBuilder builder = ConfigBuilder.create()
             .setParentScreen(parent)
-            .setTitle(Text.literal("SellMod Config"))
+            .setTitle(Component.literal("SellMod Config"))
             .setSavingRunnable(() -> {});
 
-        ConfigCategory general = builder.getOrCreateCategory(Text.literal("General"));
+        ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
         ConfigEntryBuilder entry = builder.entryBuilder();
 
         // Info text
         general.addEntry(
             entry.startTextDescription(
-                Text.literal(
+                Component.literal(
                     "SellMod automatically dumps your entire inventory\n" +
                     "into the sell GUI and closes it to sell items.\n\n" +
                     " IMPORTANT:\n" +
@@ -34,14 +34,14 @@ public class ModConfigScreen {
         );
 
         general.addEntry(
-            entry.startBooleanToggle(Text.literal("Enabled"), config.enabled)
+            entry.startBooleanToggle(Component.literal("Enabled"), config.enabled)
                 .setDefaultValue(false)
                 .setSaveConsumer(val -> config.enabled = val)
                 .build()
         );
 
         general.addEntry(
-            entry.startStrField(Text.literal("Sell Command"), config.sellCommand)
+            entry.startStrField(Component.literal("Sell Command"), config.sellCommand)
                 .setDefaultValue("/sell")
                 .setSaveConsumer(val -> config.sellCommand = val)
                 .build()
@@ -49,11 +49,11 @@ public class ModConfigScreen {
         
         general.addEntry(
             entry.startEnumSelector(
-                    Text.literal("Transfer Mode"),
+                    Component.literal("Transfer Mode"),
                     ModConfig.TransferMode.class,
                     config.transferMode
                 )
-                .setTooltip(Text.literal("""
+                .setTooltip(Component.literal("""
                 PICKUP: Uses cursor pickup logic.
                 SHIFT: Uses shift-click only (best compatibility).
                 """))
@@ -63,7 +63,7 @@ public class ModConfigScreen {
         );
 
         general.addEntry(
-            entry.startIntField(Text.literal("Base Delay (seconds)"), config.baseDelaySeconds)
+            entry.startIntField(Component.literal("Base Delay (seconds)"), config.baseDelaySeconds)
                 .setDefaultValue(5)
                 .setMin(1)
                 .setSaveConsumer(val -> config.baseDelaySeconds = val)
@@ -72,7 +72,7 @@ public class ModConfigScreen {
         
         general.addEntry(
             entry.startTextDescription(
-                Text.literal(
+                Component.literal(
                     "Adds a small random offset to the delay between sell cycles\n" +
                     "to avoid repetitive timing patterns"
                 )
@@ -81,13 +81,13 @@ public class ModConfigScreen {
         
         general.addEntry(
             entry.startIntSlider(
-                    Text.literal("Item transfer speed (in TICKS)"),
+                    Component.literal("Item transfer speed (in TICKS)"),
                     config.itemMoveDelayTicks,
                     1,
                     20
             )
             .setTooltip(
-                Text.literal(
+                Component.literal(
                     "Controls the delay between moving items into the sell GUI.\n" +
                     "Lower = Faster but riskier.\n" +
                     "Higher = Slower but safer."
@@ -104,7 +104,7 @@ public class ModConfigScreen {
                 else if (val <= 12) safety = "Safe";
                 else safety = "Very Safe";
         
-                return Text.literal(
+                return Component.literal(
                         val + " ticks  (~" + ms + " ms)  •  " + safety
                 );
             })
@@ -114,14 +114,14 @@ public class ModConfigScreen {
         
         general.addEntry(
             entry.startIntSlider(
-                    Text.literal("Transfer Burst (stacks per tick)"),
+                    Component.literal("Transfer Burst (stacks per tick)"),
                     config.transferBurst,
                     1,
                     6
             )
             .setDefaultValue(3)
             .setTooltip(
-                Text.literal(
+                Component.literal(
                     "How many item stacks are moved per client tick.\n" +
                     "Higher = faster, but may trigger server limits.\n\n" +
                     "1  = Very Safe\n" +
@@ -135,7 +135,7 @@ public class ModConfigScreen {
         
         general.addEntry(
             entry.startBooleanToggle(
-                    Text.literal("Randomize item transfer delay"),
+                    Component.literal("Randomize item transfer delay"),
                     config.randomizeItemDelay
             )
             .setDefaultValue(true)
@@ -145,8 +145,8 @@ public class ModConfigScreen {
 
         general.addEntry(
             entry.startBooleanToggle(
-                Text.literal(
-                    "Require GUI Title Match\n" + 
+                Component.literal(
+                    "Require GUI Title Match \n" + 
                     "(You might not need this though)"
                 ),
                 config.requireTitleMatch
@@ -158,11 +158,25 @@ public class ModConfigScreen {
 
         general.addEntry(
             entry.startStrField(
-                Text.literal("Expected GUI Title"),
+                Component.literal("Expected GUI Title"),
                 config.expectedTitle
             )
                 .setDefaultValue("")
                 .setSaveConsumer(val -> config.expectedTitle = val)
+                .build()
+        );
+
+        ConfigCategory analytics = builder.getOrCreateCategory(Component.literal("Analytics"));
+
+        analytics.addEntry(
+            entry.startBooleanToggle(Component.literal("Anonymous analytics"), config.analyticsEnabled)
+                .setDefaultValue(true)
+                .setTooltip(Component.literal(
+                    "Sends a random client ID plus server name, server software, and SellMod version.\n" +
+                    "(This helps me analyze usage.)\n" +
+                    "NO PERSONAL DATA IS COLLECTED."
+                ))
+                .setSaveConsumer(val -> config.analyticsEnabled = val)
                 .build()
         );
 

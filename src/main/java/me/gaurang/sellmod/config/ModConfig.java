@@ -2,6 +2,8 @@ package me.gaurang.sellmod.config;
 
 public class ModConfig {
 
+    public boolean analyticsEnabled = true;
+    public String analyticsEndpoint = "https://sellmod-analytics.onrender.com/api/track";
     public static final ModConfig INSTANCE = new ModConfig();
 
     // Master toggle

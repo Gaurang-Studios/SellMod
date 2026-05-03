@@ -2,15 +2,17 @@ package me.gaurang.sellmod.controller;
 
 import me.gaurang.sellmod.config.ModConfig;
 import me.gaurang.sellmod.state.SellState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.toast.SystemToast;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
+import me.gaurang.sellmod.analytics.SellAnalytics;
+import me.gaurang.sellmod.SellModClient;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.ContainerInput;
 
 import java.util.Random;
 
@@ -25,21 +27,13 @@ public class SellController {
     private int cooldownTicks;
     private int actionDelayTicks;
 
-    private ScreenHandler handler;
+    private AbstractContainerMenu handler;
 
     private boolean movedThisCycle = false;
     private boolean guiWasOpened = false;
 
-    /* =========================
-       Stall Detection
-       ========================= */
-
     private int stallTicks = 0;
     private static final int STALL_THRESHOLD = 40;
-
-    /* =========================
-       Public API
-       ========================= */
 
     public void enable() {
         state = SellState.SEND_COMMAND;
@@ -58,14 +52,12 @@ public class SellController {
         return state != SellState.IDLE;
     }
 
-    /* ========================= */
-
-    public void onClientTick(MinecraftClient client) {
+    public void onClientTick(Minecraft client) {
         if (!config.enabled || client.player == null) return;
 
         if (guiWasOpened
                 && state != SellState.IDLE
-                && !(client.currentScreen instanceof HandledScreen<?>)) {
+                && !(client.screen instanceof AbstractContainerScreen<?>)) {
 
             handler = null;
             guiWasOpened = false;
@@ -84,20 +76,20 @@ public class SellController {
         }
     }
 
-    /* ========================= */
-
-    private void sendCommand(MinecraftClient client) {
+    private void sendCommand(Minecraft client) {
         String cmd = config.sellCommand;
         if (cmd.startsWith("/")) cmd = cmd.substring(1);
 
-        client.player.networkHandler.sendChatCommand(cmd);
+        SellAnalytics.recordUsage(client, SellModClient.MOD_VERSION);
+
+        client.player.connection.sendCommand(cmd);
         waitTicks = 40;
         state = SellState.WAIT_FOR_GUI;
     }
 
-    private void waitForGui(MinecraftClient client) {
-        if (client.currentScreen instanceof HandledScreen<?> screen) {
-            handler = screen.getScreenHandler();
+    private void waitForGui(Minecraft client) {
+        if (client.screen instanceof AbstractContainerScreen<?> screen) {
+            handler = screen.getMenu();
             movedThisCycle = false;
             guiWasOpened = true;
             stallTicks = 0;
@@ -112,16 +104,12 @@ public class SellController {
         }
     }
 
-    /* =========================
-       FIXED BURST LOGIC
-       ========================= */
-
-    private void dumpInventory(MinecraftClient client) {
+    private void dumpInventory(Minecraft client) {
         if (actionDelayTicks-- > 0) return;
-        if (!(client.currentScreen instanceof HandledScreen<?>)) return;
+        if (!(client.screen instanceof AbstractContainerScreen<?>)) return;
         if (handler == null) return;
 
-        ClientPlayerInteractionManager im = client.interactionManager;
+        MultiPlayerGameMode im = client.gameMode;
         if (im == null) return;
 
         int burst = Math.max(1, config.transferBurst);
@@ -131,17 +119,21 @@ public class SellController {
 
         while (burst-- > 0) {
 
-            /* ================= SHIFT ================= */
-
+            // SHIFT
             if (useShift) {
                 boolean moved = false;
 
                 for (Slot slot : handler.slots) {
-                    if (!(slot.inventory instanceof PlayerInventory)) continue;
-                    if (!slot.hasStack()) continue;
+                    if (!(slot.container instanceof Inventory)) continue;
+                    if (!slot.hasItem()) continue;
 
-                    im.clickSlot(handler.syncId, slot.id, 0,
-                            SlotActionType.QUICK_MOVE, client.player);
+                    im.handleContainerInput(
+                            handler.containerId,
+                            slot.index,
+                            0,
+                            ContainerInput.QUICK_MOVE,
+                            client.player
+                    );
 
                     moved = true;
                     movedThisTick = true;
@@ -150,13 +142,11 @@ public class SellController {
                 }
 
                 if (!moved) break;
-
-                continue; // <-- IMPORTANT (keeps burst alive)
+                continue;
             }
 
-            /* ================= PICKUP ================= */
-
-            if (!handler.getCursorStack().isEmpty()) {
+            // PICKUP
+            if (!handler.getCarried().isEmpty()) {
                 actionDelayTicks = 2;
                 return;
             }
@@ -164,18 +154,30 @@ public class SellController {
             boolean moved = false;
 
             for (Slot from : handler.slots) {
-                if (!(from.inventory instanceof PlayerInventory)) continue;
-                if (!from.hasStack()) continue;
+                if (!(from.container instanceof Inventory)) continue;
+                if (!from.hasItem()) continue;
 
-                im.clickSlot(handler.syncId, from.id, 0,
-                        SlotActionType.PICKUP, client.player);
+                // pick up
+                im.handleContainerInput(
+                        handler.containerId,
+                        from.index,
+                        0,
+                        ContainerInput.PICKUP,
+                        client.player
+                );
 
                 for (Slot to : handler.slots) {
-                    if (to.inventory instanceof PlayerInventory) continue;
-                    if (!to.canInsert(handler.getCursorStack())) continue;
+                    if (to.container instanceof Inventory) continue;
+                    if (!to.mayPlace(handler.getCarried())) continue;
 
-                    im.clickSlot(handler.syncId, to.id, 0,
-                            SlotActionType.PICKUP, client.player);
+                    // place
+                    im.handleContainerInput(
+                            handler.containerId,
+                            to.index,
+                            0,
+                            ContainerInput.PICKUP,
+                            client.player
+                    );
 
                     moved = true;
                     movedThisTick = true;
@@ -183,25 +185,27 @@ public class SellController {
                     break;
                 }
 
-                if (!moved && !handler.getCursorStack().isEmpty()) {
-                    im.clickSlot(handler.syncId, from.id, 0,
-                            SlotActionType.PICKUP, client.player);
+                // revert if failed
+                if (!moved && !handler.getCarried().isEmpty()) {
+                    im.handleContainerInput(
+                            handler.containerId,
+                            from.index,
+                            0,
+                            ContainerInput.PICKUP,
+                            client.player
+                    );
                 }
 
                 break;
             }
 
             if (!moved) break;
-
-            continue; // <-- IMPORTANT
         }
-
-        /* ================= GUI FULL DETECTION ================= */
 
         boolean playerHasItems = false;
 
         for (Slot slot : handler.slots) {
-            if (slot.inventory instanceof PlayerInventory && slot.hasStack()) {
+            if (slot.container instanceof Inventory && slot.hasItem()) {
                 playerHasItems = true;
                 break;
             }
@@ -233,7 +237,7 @@ public class SellController {
         if (handler == null) return false;
 
         for (Slot slot : handler.slots) {
-            if (!(slot.inventory instanceof PlayerInventory) && !slot.hasStack()) {
+            if (!(slot.container instanceof Inventory) && !slot.hasItem()) {
                 return true;
             }
         }
@@ -241,18 +245,17 @@ public class SellController {
         return false;
     }
 
-    private void closeGui(MinecraftClient client) {
-        
-        client.player.closeHandledScreen();
-    
+    private void closeGui(Minecraft client) {
+        client.player.closeContainer();
+
         if (movedThisCycle) {
             showToast("Items sold", "Waiting for next cycle");
         }
-    
+
         handler = null;
         guiWasOpened = false;
         movedThisCycle = false;
-    
+
         cooldownTicks = rollCooldown();
         state = SellState.COOLDOWN;
     }
@@ -270,14 +273,14 @@ public class SellController {
     }
 
     private void showToast(String title, String msg) {
-        MinecraftClient.getInstance().execute(() ->
-            MinecraftClient.getInstance().getToastManager().add(
-                new SystemToast(
-                    SystemToast.Type.PERIODIC_NOTIFICATION,
-                    Text.literal(title),
-                    Text.literal(msg)
+        Minecraft.getInstance().execute(() ->
+                Minecraft.getInstance().getToastManager().addToast(
+                        new SystemToast(
+                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                Component.literal(title),
+                                Component.literal(msg)
+                        )
                 )
-            )
         );
     }
 }

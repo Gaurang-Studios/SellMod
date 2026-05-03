@@ -9,7 +9,7 @@
 
 ## 🚀 About
 
-SellMod is a Fabric **client-side mod** for Minecraft 1.21.X.
+SellMod is a Fabric **client-side mod** for Minecraft 1.21.X to 26.1.X.
 
 It helps selling items by interacting with server-based sell GUIs exactly like a player would.
 
@@ -29,7 +29,22 @@ No server mods required.
 - GUI-full auto close detection
 - Stall detection (prevents stuck sell GUIs)
 - Compatible with plugin-based chest sell systems
-- 1.21.1 → 1.21.11 support (tested builds)
+- Optional anonymous analytics
+- Public analytics dashboard
+- 1.21.X → 26.1.X support (tested builds)
+
+---
+
+## 📊 Analytics
+
+SellMod includes optional anonymous analytics.
+When enabled, it sends only:
+- Server IP
+- Server Software B5rand
+- SellMod Version
+- a random client ID (for unique clients)
+
+Analytics Dashboard: https://sellmod-analytics.onrender.com/dashboard
 
 ---
 
@@ -42,13 +57,15 @@ SellMod simulates real player behavior:
 3. Moves items using valid slot interactions  
 4. Closes the GUI to trigger sell-on-close mechanics  
 
-No packet spoofing or inventory injection.
+No packet spoofing.  
+No inventory injection.  
+Only legitimate screen interactions.
 
 ---
 
 ## 🛠 Requirements
 
-- Minecraft 1.21.X (see releases for exact supported versions)
+- Minecraft 26.1.X (see releases for exact supported versions)
 - Fabric Loader 0.18+
 - Fabric API
 - Cloth Config
@@ -61,8 +78,8 @@ No packet spoofing or inventory injection.
 1. Install Fabric Loader
 2. Install required dependencies
 3. Place SellMod + dependencies in your `mods` folder
-4. Open Mod Menu → Configure SellMod as per your liking
-5. Bind a key in controls and start selling
+4. Open Mod Menu → Configure SellMod
+5. Bind a key and start selling
 
 ---
 
@@ -86,7 +103,7 @@ No packet spoofing or inventory injection.
 
 - GitHub Issues:  
   https://github.com/Gaurang-Studios/SellMod/issues
-- Discord: `real_gaurang`
+- Discord Server: https://dsc.gg/gaurangstudios
 
 ---
 
