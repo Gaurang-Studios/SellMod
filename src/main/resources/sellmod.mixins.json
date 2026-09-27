@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.gaurang.sellmod.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "AbstractContainerScreenAccessor",
+    "ProtectedSlotOverlayMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

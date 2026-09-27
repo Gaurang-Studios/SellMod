@@ -1,65 +1,131 @@
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
-    id 'maven-publish'
+	id 'dev.kikugie.loom-back-compat'
+	id 'maven-publish'
 }
 
-group = 'me.gaurang'
-version = '1.0.4'
+version = project.mod_version
+group = project.maven_group
 
 base {
-    archivesName = 'sellmod'
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
+	archivesName = project.archives_base_name
 }
 
 repositories {
-    mavenCentral()
-    maven { url "https://maven.terraformersmc.com/releases/" }
-    maven { url "https://maven.shedaniel.me/" }
+	maven {
+		name = 'Cloth Config'
+		url = 'https://maven.shedaniel.me/'
+	}
+	maven {
+		name = 'TerraformersMC'
+		url = 'https://maven.terraformersmc.com/releases/'
+	}
 }
 
+def mcJavaVersion = JavaVersion.toVersion(project.java_version)
+
 dependencies {
-    // Minecraft
-    minecraft "com.mojang:minecraft:26.1"
-    implementation "net.fabricmc:fabric-loader:0.18.6"
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 
-    // Fabric API
-    implementation "net.fabricmc.fabric-api:fabric-api:0.145.1+26.1"
-    
-    // implementation "net.fabricmc.fabric-api:fabric-screen-api-v1:0.145.1+26.1"
+	loomx.applyMojangMappings()
 
-    // Mod Menu (client)
-    compileOnly "com.terraformersmc:modmenu:18.0.0-alpha.8"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    // Cloth Config (client)
-    implementation "me.shedaniel.cloth:cloth-config-fabric:26.1.154"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {
-    inputs.property "version", project.version
+	def version = project.version
+	inputs.property "version", version
 
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
-    }
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.release = 25
-    options.encoding = "UTF-8"
+	it.options.release = Integer.parseInt(project.java_version)
+}
+
+java {
+	withSourcesJar()
+
+	sourceCompatibility = mcJavaVersion
+	targetCompatibility = mcJavaVersion
 }
 
 jar {
-    from("LICENSE")
+	inputs.property "archivesName", project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName}" }
+	}
 }
 
+// configure the maven publication
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
+	publications {
+		create("mavenJava", MavenPublication) {
+			from components.java
+		}
+	}
+}
+
+def forbiddenCoreImports = [
+		/^(\s|\t)*import\s+net\.minecraft\./,
+		/^(\s|\t)*import\s+net\.fabricmc\.fabric\.api\./,
+		/^(\s|\t)*import\s+me\.shedaniel\./,
+		/^(\s|\t)*import\s+com\.terraformersmc\.modmenu\./,
+		/^(\s|\t)*import\s+net\.fabricmc\.loader\./,
+]
+
+tasks.register('guardCoreImports') {
+	group = 'verification'
+	description = 'Fails the build if me.gaurang.sellmod.core imports MC/Fabric/Cloth/ModMenu types.'
+	def srcDirs = sourceSets.main.java.srcDirs
+	def coreSources = fileTree(dir: rootDir, include: 'src/main/java/me/gaurang/sellmod/core/**/*.java')
+	def reportFile = layout.buildDirectory.file('reports/core-import-guard.txt')
+	inputs.files(coreSources).withPropertyName('coreSources').skipWhenEmpty()
+	outputs.file(reportFile)
+
+	doLast {
+		def violations = []
+		srcDirs.each { dir ->
+			if (!dir.exists()) return
+			fileTree(dir: dir, include: '**/me/gaurang/sellmod/core/**/*.java').each { f ->
+				f.eachLine { line, num ->
+					forbiddenCoreImports.each { pattern ->
+						if ((line =~ pattern).find()) {
+							violations << "${f.relativePath(new File(dir))}:${num}: ${line.trim()}"
+						}
+					}
+				}
+			}
+		}
+		def out = reportFile.get().asFile
+		out.parentFile.mkdirs()
+		out.text = violations.isEmpty() ? 'OK' : violations.join('\n')
+		if (!violations.isEmpty()) {
+			throw new GradleException("Forbidden imports in sellmod.core:\n" + violations.join('\n'))
+		}
+	}
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('guardCoreImports')
+}
+
+tasks.register('versionedJar', Copy) {
+	group = 'build'
+	description = "Copies the built jar as sellmod_v${project.mod_version}-${project.minecraft_version}.jar"
+	dependsOn loomx.modJar
+	from(loomx.modJar)
+	into layout.buildDirectory.dir('libs')
+	rename { String name -> "sellmod_v${project.mod_version}-${project.minecraft_version}.jar" }
+}
+
+tasks.named('build') {
+	dependsOn tasks.named('versionedJar')
 }

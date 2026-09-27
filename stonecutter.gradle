@@ -1,0 +1,17 @@
+plugins {
+	id 'dev.kikugie.stonecutter'
+}
+
+stonecutter.active("26.1")
+
+afterEvaluate {
+	['build', 'check', 'clean'].each { name ->
+		if (tasks.findByName(name) == null) {
+			tasks.register(name) {
+				group = 'build'
+				description = "Delegates '${name}' to the active Stonecutter node (26.1)."
+				dependsOn ":26.1:${name}"
+			}
+		}
+	}
+}

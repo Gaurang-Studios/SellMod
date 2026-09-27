@@ -1,25 +1,23 @@
 {
   "schemaVersion": 1,
   "id": "sellmod",
-  "version": "1.0.4",
+  "version": "${version}",
   "name": "SellMod",
   "license": "MIT",
   "icon": "icon.png",
-
-  "description": "Client-side helper mod that automates selling by interacting with server-provided sell GUIs.",
-
+  "description": "Client-side helper mod that automates selling by interacting with server-provided sell GUIs, either by selling on GUI close or through a detected Sell button.",
   "authors": [
     "Gaurang-Studios"
   ],
-
   "contact": {
     "sources": "https://github.com/Gaurang-Studios/SellMod",
     "issues": "https://github.com/Gaurang-Studios/SellMod/issues",
-    "discord": "real_gaurang"
+    "discord": "https://dsc.gg/gaurangstudios"
   },
-
   "environment": "client",
-
+  "mixins": [
+    "sellmod.mixins.json"
+  ],
   "entrypoints": {
     "client": [
       "me.gaurang.sellmod.SellModClient"
@@ -28,12 +26,13 @@
       "me.gaurang.sellmod.SellModMenu"
     ]
   },
-
   "depends": {
-    "fabricloader": ">=0.18.2",
+    "fabricloader": ">=0.18.6",
     "fabric-api": "*",
-    "minecraft": ">=26.1",
-    "cloth-config": ">=26.1.154",
-    "modmenu": ">=18.0.0-alpha.7"
+    "minecraft": "26.1",
+    "cloth-config": ">=26.1.154"
+  },
+  "suggests": {
+    "modmenu": ">=18.0.0-alpha.8"
   }
 }

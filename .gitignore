@@ -1,19 +1,49 @@
-# Gradle
 .gradle/
 build/
-
-# Gradle wrapper cache
 **/build/
-**/.gradle/
+out/
+release/
 
-# IDE files
+**/loom-cache/
+**/remappedJars/
+**/remapped_working/
+**/stonecutter-cache/
+**/.stonecutter-cache/
+run/
+**/run/
+
+**/reports/
+**/test-results/
+
 .idea/
-.vscode/
 *.iml
+*.ipr
+*.iws
+.vscode/
+*.code-workspace
+.project
+.classpath
+.settings/
+*.eclipse/
+nbproject/
+nb-configuration.xml
 
-# Logs
-*.log
-
-# OS junk
 .DS_Store
 Thumbs.db
+*~
+*.swp
+*.swo
+*.swn
+#*#
+.#*
+
+*.log
+*.tmp
+*.bak
+*.orig
+*.rej
+hs_err_pid*.log
+replay_pid*.log
+crash-reports/
+
+*.class
